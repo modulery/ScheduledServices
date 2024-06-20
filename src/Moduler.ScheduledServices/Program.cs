@@ -1,15 +1,26 @@
-var builder = WebApplication.CreateBuilder(args);
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
+using Moduler.KuveytTurk.Services;
+using Moduler.ScheduledServices.IoC;
 
-// Add services to the container.
+var builder = WebApplication.CreateBuilder(args);
+var configuration = builder.Configuration;
+var services = builder.Services;
+
+services.AddDbServices(configuration);
+
+builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
+var diModule = new MyApplicationModule(); 
+diModule.AssemblyNameSpaces = configuration.GetValue<string>("AssembliesToRegister").ToString().Split(";");
+builder.Host.ConfigureContainer<ContainerBuilder>(builder => builder.RegisterModule(diModule));
+
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
