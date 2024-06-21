@@ -1,8 +1,114 @@
-﻿@{
+﻿@using Moduler.ScheduledServices.IoC
+@using Newtonsoft.Json
+@{
     ViewData["Title"] = "Home Page";
-}
+    var interfaceData = MyApplicationModule.MyInterfaces
+       .Select(x => new
+       {
+           Name = x.Name,
+           Methods = x.GetMethods().Select(y => new
+           {
+               Name = y.Name,
+               ReturnType = y.ReturnType.FullName,
+               Parameters = y.GetParameters().Select(z => new
+               {
+                   Name = z.Name,
+                   ParameterType = z.ParameterType.Name
+               })
+           })
+       })
+       .ToList();
 
+    var json = JsonConvert.SerializeObject(interfaceData);
+}
+<style>
+    #methodInputDiv, #methodOutputDiv {
+        min-width: 10%;
+        max-width: 40%;
+        max-width:300px;
+    }
+</style>
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <table>
+        <tr>
+            <th>Interface</th>
+            <th>Method</th>
+            <th>Input</th>
+            <th>Output</th>
+        </tr>
+        <tr>
+            <td>
+                <select id="interfaceDropdown"></select>
+            </td>
+            <td>
+                <select id="methodDropdown"></select>
+            </td>
+            <td id="methodInputDiv">
+                <!-- input models will be displayed here -->
+            </td>
+            <td id="methodOutputDiv">
+                <!-- output models will be displayed here -->
+            </td>
+        </tr>
+    </table>
 </div>
+
+<script>
+    // Get the serialized interface data
+    var interfaceData = @Html.Raw(json);
+
+    // Populate the interface dropdown
+    var interfaceDropdown = document.getElementById("interfaceDropdown");
+    for (var i = 0; i < interfaceData.length; i++) {
+        var interfaceName = interfaceData[i].Name;
+        var option = document.createElement("option");
+        option.text = interfaceName;
+        interfaceDropdown.add(option);
+    }
+
+    // Populate the method dropdown when an interface is selected
+    interfaceDropdown.addEventListener("change", function () {
+        var selectedInterface = interfaceData.find(function (interfaceType) {
+            return interfaceType.Name === interfaceDropdown.value;
+        });
+
+        var methodDropdown = document.getElementById("methodDropdown");
+        methodDropdown.innerHTML = "";
+        for (var i = 0; i < selectedInterface.Methods.length; i++) {
+            var method = selectedInterface.Methods[i];
+            var option = document.createElement("option");
+            option.text = method.Name;
+            methodDropdown.add(option);
+        }
+    });
+
+    // Display input and output models when a method is selected
+    methodDropdown.addEventListener("change", function () {
+        var selectedMethod = interfaceData.find(function (interfaceType) {
+            return interfaceType.Name === interfaceDropdown.value;
+        }).Methods.find(function (method) {
+            return method.Name === methodDropdown.value;
+        });
+
+        var methodInputDiv = document.getElementById("methodInputDiv");
+        methodInputDiv.innerHTML = "";
+
+        // Display input models
+        var inputModels = selectedMethod.Parameters;
+        var inputModelsJson = JSON.stringify(inputModels, null, 2);
+        var inputModelsPre = document.createElement("pre");
+        inputModelsPre.textContent = inputModelsJson;
+        methodInputDiv.appendChild(inputModelsPre);
+
+        var methodOutputDiv = document.getElementById("methodOutputDiv");
+        methodOutputDiv.innerHTML = "";
+
+        // Display output model
+        var outputModel = selectedMethod.ReturnType;
+        var outputModelJson = JSON.stringify({ Return: outputModel }, null, 2);
+        var outputModelPre = document.createElement("pre");
+        outputModelPre.textContent = outputModelJson;
+        methodOutputDiv.appendChild(outputModelPre);
+    });
+</script>
