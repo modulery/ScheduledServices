@@ -1,5 +1,7 @@
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using Hangfire;
+using Hangfire.PostgreSql;
 using Moduler.KuveytTurk.Services;
 using Moduler.ScheduledServices.IoC;
 
@@ -14,7 +16,10 @@ var diModule = new MyApplicationModule();
 diModule.AssemblyNameSpaces = configuration.GetValue<string>("AssembliesToRegister").ToString().Split(";");
 builder.Host.ConfigureContainer<ContainerBuilder>(builder => builder.RegisterModule(diModule));
 
-builder.Services.AddControllersWithViews();
+services.AddHangfire(x => x.UsePostgreSqlStorage(configuration.GetConnectionString("HangfireDbContext")));
+services.AddHangfireServer();
+
+services.AddControllersWithViews();
 
 var app = builder.Build();
 
@@ -30,6 +35,9 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
+
+app.UseHangfireDashboard("/automations");
+app.UseHangfireServer();
 
 app.MapControllerRoute(
     name: "default",
