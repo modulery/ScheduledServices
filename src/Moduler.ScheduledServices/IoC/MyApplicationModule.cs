@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 using System.Reflection;
 
@@ -8,6 +9,8 @@ namespace Moduler.ScheduledServices.IoC
     {
         public string[] AssemblyNameSpaces { get; set; }
         public static Type[] MyInterfaces { get; private set; } = new Type[0];
+        public static Type[] MyServices { get; private set; } = new Type[0];
+
         protected override void Load(ContainerBuilder builder)
         {
             var projectDirectory = AppDomain.CurrentDomain.BaseDirectory;
@@ -22,23 +25,38 @@ namespace Moduler.ScheduledServices.IoC
 
                     Type[] types = assembly.GetTypes();
                     Type[] interfaces = types.Where(t => t.IsInterface).ToArray();
-                    if (interfaces.Length>0)
+                    Type[] services = interfaces.SelectMany(interfaceType => types.Where(t => t.IsClass && !t.IsAbstract && interfaceType.IsAssignableFrom(t))).ToArray();
+
+                    if (interfaces.Length > 0)
                     {
                         MyInterfaces = (Type[])MyInterfaces.Concat(interfaces).ToArray();
                         foreach (Type interfaceType in interfaces)
                         {
-                            Console.WriteLine(interfaceType.Name);
+                            var serviceType = services.FirstOrDefault(t => interfaceType.IsAssignableFrom(t));
+                            if (serviceType == null) continue;
+
                             foreach (var method in interfaceType.GetMethods())
                             {
-                                var returnType = method.ReturnType.FullName;
+                                var returnType = method.ReturnType;
                                 var parameters = method.GetParameters();
+                                Console.WriteLine(interfaceType.Name + " " + serviceType.Name + " " + method.Name);
+                            }
+
+                            Console.WriteLine(interfaceType.Name + " " + serviceType.Name);
+                            MyServices = (Type[])MyServices.Concat(new Type[] { serviceType }).ToArray();
+                            try
+                            {
+                                builder.RegisterType(serviceType)
+                                    .As(interfaceType)
+                                    .InstancePerLifetimeScope();
+                            }
+                            catch (Exception ex)
+                            {
+
                             }
                         }
                     }
-
-                    builder.RegisterAssemblyTypes(assembly)
-                        .Where(t => t.Namespace.StartsWith(assemblyName) && t.IsInterface)
-                        .AsImplementedInterfaces();
+                    Console.WriteLine("----------------------");
                 }
             }
         }
