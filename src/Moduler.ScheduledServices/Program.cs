@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Hangfire;
 using Hangfire.PostgreSql;
+using Microsoft.OpenApi.Models;
 using Moduler.KuveytTurk.Services;
 using Moduler.ScheduledServices.IoC;
 
@@ -21,7 +22,11 @@ services.AddHangfireServer();
 
 services.AddControllersWithViews();
 services.AddEndpointsApiExplorer();
-services.AddSwaggerGen();
+services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+    c.DocumentFilter<DynamicApiDocumentFilter>();
+});
 
 var app = builder.Build();
 
