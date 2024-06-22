@@ -1,6 +1,4 @@
 ﻿using Autofac;
-using Microsoft.AspNetCore.Mvc;
-using RestSharp;
 using System.Reflection;
 
 namespace Moduler.ScheduledServices.IoC

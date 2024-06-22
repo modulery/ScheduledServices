@@ -5,6 +5,7 @@ using Hangfire.PostgreSql;
 using Microsoft.OpenApi.Models;
 using Moduler.KuveytTurk.Services;
 using Moduler.ScheduledServices.IoC;
+using Moduler.ScheduledServices.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Moduler.ScheduledServices.Models;
 
-namespace WebApplication3.Controllers
+namespace Moduler.ScheduledServices.Controllers
 {
     [ApiController]
     [Route("[controller]")]

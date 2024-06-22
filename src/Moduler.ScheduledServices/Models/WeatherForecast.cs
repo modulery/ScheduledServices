@@ -1,4 +1,4 @@
-namespace WebApplication3
+namespace Moduler.ScheduledServices.Models
 {
     public class WeatherForecast
     {
