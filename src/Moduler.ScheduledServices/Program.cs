@@ -20,6 +20,8 @@ services.AddHangfire(x => x.UsePostgreSqlStorage(configuration.GetConnectionStri
 services.AddHangfireServer();
 
 services.AddControllersWithViews();
+services.AddEndpointsApiExplorer();
+services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -28,6 +30,8 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
