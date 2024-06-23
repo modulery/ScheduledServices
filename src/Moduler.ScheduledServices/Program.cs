@@ -2,8 +2,10 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Hangfire;
 using Hangfire.PostgreSql;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Moduler.KuveytTurk.Services;
+using Moduler.ScheduledServices.Data;
 using Moduler.ScheduledServices.IoC;
 using Moduler.ScheduledServices.Middlewares;
 
@@ -18,10 +20,14 @@ var diModule = new MyApplicationModule();
 diModule.AssemblyNameSpaces = configuration.GetValue<string>("AssembliesToRegister").ToString().Split(";");
 builder.Host.ConfigureContainer<ContainerBuilder>(builder => builder.RegisterModule(diModule));
 
+services.AddEntityFrameworkNpgsql().AddDbContext<HangfireDbContext>(options => {
+    options.UseNpgsql(configuration.GetConnectionString("HangfireDbContext"));
+});
 services.AddHangfire(x => x.UsePostgreSqlStorage(configuration.GetConnectionString("HangfireDbContext")));
 services.AddHangfireServer();
 
 services.AddControllersWithViews();
+
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen(c =>
 {
